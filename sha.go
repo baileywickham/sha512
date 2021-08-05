@@ -69,15 +69,20 @@ func pad(message []byte) []byte {
 	return append(message, []byte(pad)...)
 }
 
+// We take a message which is a multiple of 1024 bits and covert it into
+// 64 bit words. This might not work
 func byteToWord(message []byte) []uint64 {
-	for key, value := range message - 1 {
-
-		strings.Repeat("0")
-		for i := range []int{0, 1, 2, 3} {
-
+	Message := []uint64{}
+	for i := 0; i <= len(message)-3; i++ {
+		soonToBeUInt := ""
+		for j := 0; j <= 3; i++ {
+			temp := string(message[i+j])
+			soonToBeUInt = soonToBeUInt + strings.Repeat("0", 8-len(temp)) + temp
 		}
+		u, _ := strconv.ParseUint(soonToBeUInt, 2, 64)
+		Message = append(Message, u)
 	}
-
+	return Message
 }
 
 func messageToBlocks(message []byte) {
