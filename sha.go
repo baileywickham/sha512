@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -12,7 +13,9 @@ var K = [80]uint64{0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f, 0
 var H = [8]uint64{0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1, 0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179}
 
 func main() {
-	pad(messageToBytes("abc"))
+	message := pad(messageToBytes("abc"))
+	println(len(message))
+	fmt.Printf("%v", byteToWord(pad(messageToBytes("abc"))))
 }
 
 // Rotate left, x is w-bit word, n uint64 where 0 <= n < w
@@ -59,34 +62,39 @@ func add(a, b uint64) uint64 {
 
 // returns a padded message which should be a multiple of 1024
 func pad(message []byte) []byte {
-	l := len(message) * 8
-	str_l := strconv.FormatUint(uint64(l), 2)
+	messageLenBytes := len(message) * 8
+	str_l := strconv.FormatUint(uint64(messageLenBytes), 2)
 	// sometimes this could be as big as 128 bits, in that case we overflow
 	// and break. I don't want to deal with out of spec golang sizes
-	k := (896 - (l + 1)) % 1024
+	k := (896 - (messageLenBytes + 1)) % 1024
 	// + convert l to int then pad with 0s
 	pad := "1" + strings.Repeat("0", k+(128-len(str_l))) + str_l
+
+	message = append(message, (byte(0)+1)<<7)
+
 	return append(message, []byte(pad)...)
 }
 
 // We take a message which is a multiple of 1024 bits and covert it into
 // 64 bit words. This might not work
-func byteToWord(message []byte) []uint64 {
-	Message := []uint64{}
+func byteToWord(message []byte) [][]uint64 {
+	Message := [][]uint64{}
+	messageBlock := []uint64{}
 	for i := 0; i <= len(message)-3; i++ {
+		if i%16 == 0 {
+			Message = append(Message, messageBlock)
+			messageBlock = []uint64{}
+		}
+
 		soonToBeUInt := ""
 		for j := 0; j <= 3; i++ {
 			temp := string(message[i+j])
 			soonToBeUInt = soonToBeUInt + strings.Repeat("0", 8-len(temp)) + temp
 		}
 		u, _ := strconv.ParseUint(soonToBeUInt, 2, 64)
-		Message = append(Message, u)
+		messageBlock = append(messageBlock, u)
 	}
 	return Message
-}
-
-func messageToBlocks(message []byte) {
-
 }
 
 func messageToBytes(message string) []byte {
