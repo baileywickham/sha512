@@ -134,7 +134,6 @@ func hashMessage(messageBlock []uint64) {
 	}
 
 	for t := 16; t <= 79; t++ {
-		println(t)
 		W[t] = add(sig_1(W[t-2]), W[t-7], sig_0(W[t-15]), W[t-16])
 	}
 
