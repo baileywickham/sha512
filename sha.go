@@ -13,9 +13,17 @@ var H_I = 1
 
 func main() {
 	message := pad(messageToBytes("abc"))
-	println(len(message))
 	Message := byteSliceToMessage(message)
-	fmt.Printf("%v", Message)
+	hash(Message)
+	printHash()
+}
+
+func printHash() {
+	output := ""
+	for i := 0; i <= 7; i++ {
+		output += fmt.Sprintf("%x", H[i])
+	}
+	println(output)
 }
 
 // Rotate left, x is w-bit word, n uint64 where 0 <= n < w
@@ -114,32 +122,50 @@ func byteSliceToMessage(message []byte) [][]uint64 {
 }
 
 func hash(Message [][]uint64) {
-	W := [][]uint64{}
-	for t := 0; t <= 15; t++ {
-		W = append(W)
-
+	for _, value := range Message {
+		hashMessage(value)
 	}
 }
 
 func hashMessage(messageBlock []uint64) {
-	W := make([]uint64, 79)
+	W := make([]uint64, 80)
 	for t := 0; t <= 15; t++ {
 		W[t] = messageBlock[t]
 	}
 
 	for t := 16; t <= 79; t++ {
+		println(t)
 		W[t] = add(sig_1(W[t-2]), W[t-7], sig_0(W[t-15]), W[t-16])
 	}
 
-	a = H[0]
-	b = H[1]
-	c = H[2]
-	d = H[3]
-	e = H[4]
-	f = H[5]
-	g = H[6]
-	h = H[7]
-
+	a := H[0]
+	b := H[1]
+	c := H[2]
+	d := H[3]
+	e := H[4]
+	f := H[5]
+	g := H[6]
+	h := H[7]
+	for t := 0; t <= 79; t++ {
+		T_1 := add(h, SIG_1(e), ch(e, f, g), K[t], W[t])
+		T_2 := add(SIG_0(a), Maj(a, b, c))
+		h = g
+		g = f
+		f = e
+		e = add(d, T_1)
+		d = c
+		c = b
+		b = a
+		a = add(T_1 + T_2)
+	}
+	H[0] = add(a, H[0])
+	H[1] = add(b, H[1])
+	H[2] = add(c, H[2])
+	H[3] = add(d, H[3])
+	H[4] = add(e, H[4])
+	H[5] = add(f, H[5])
+	H[6] = add(g, H[6])
+	H[7] = add(h, H[7])
 }
 
 func messageToBytes(message string) []byte {
