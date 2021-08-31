@@ -13,11 +13,8 @@ var H_I = 1
 
 func main() {
 	H := []uint64{0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1, 0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179}
-	fmt.Println(i64tobarr(200))
-	message := pad(messageToBytes(""))
-	Message := byteSliceToMessage(message)
-	fmt.Println(Message)
-	fmt.Println(len(Message[0]))
+	paddedMessage := pad(messageToBytes(""))
+	Message := byteSliceToMessage(paddedMessage)
 	H = hash(Message, H)
 	printHash(H)
 }
@@ -79,12 +76,19 @@ func add(nums ...uint64) uint64 {
 
 func i64tobarr(val uint64) []byte {
 	r := make([]byte, 8)
-	binary.LittleEndian.PutUint64(r, val)
+	binary.BigEndian.PutUint64(r, val)
 	return r
 }
 
 func btoi64(val []byte) uint64 {
-	return binary.LittleEndian.Uint64(val)
+	return uint64(val[0]<<56) |
+		uint64(val[1]<<48) |
+		uint64(val[2]<<40) |
+		uint64(val[3]<<32) |
+		uint64(val[4]<<24) |
+		uint64(val[5]<<16) |
+		uint64(val[6]<<8) |
+		uint64(val[7])
 }
 
 // returns a padded message which should be a multiple of 1024
